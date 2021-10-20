@@ -27,8 +27,9 @@ page = client.get_block(url)
     '.md': 'markdown',
     '.txt': 'plain text'
 }
+
 주석prefix매핑 = {
-    '.py': '##',
+    '.py': '#/#/#',
     '.js': '//',
     '.json': '//',
     '.html': '',
@@ -37,6 +38,20 @@ page = client.get_block(url)
     '.md': '',
     '.txt': '//'
 }
+
+# notion에서 공백처리를 html로 함.
+# 일반 공백으로 하면 개행 후 들여쓰기 손실 생김.
+공백prefix매핑 = {
+    '.py': '&nbsp;',
+    '.js': '&nbsp;',
+    '.json': '&nbsp;',
+    '.html': '&nbsp;',
+    '.css': '&nbsp;',
+    '.scss': '&nbsp;',
+    '.md': ' ',
+    '.txt': ' '
+}
+
 주석prefix = '//'
 언어 = 'javascript'
 
@@ -44,10 +59,12 @@ for title in glob('*'):
     if isdir(title):
         childblock = page.children.add_new(PageBlock)
         childblock.title = title
+        childblock.icon = "📝"
         for title2 in glob(f'{title}/*'):
             if isdir(title2):
                 childblock2 = childblock.children.add_new(PageBlock)
                 childblock2.title = title2
+                childblock2.icon = "📝"
                 for title3 in glob(f'{title2}/*'):
                     print(title3)
                     if not isdir(title3):
@@ -56,9 +73,11 @@ for title in glob('*'):
                             f = open(title3, 'rt', encoding="utf-8")
                             data = f.read()
                             f.close()
+                            data = data.replace(' ', 공백prefix매핑.get(확장자, " "))
                             codeblockinpage = childblock2.children.add_new(
                                 CodeBlock)
-                            codeblockinpage.title = f'{주석prefix매핑.get(확장자, "")} 파일이름 : {title3} \r\n\r\n{data}'
+                            codeblockinpage.title = f'{주석prefix매핑.get(확장자, "")} 파일이름 : {title3} \n\n{data}'
+                            codeblockinpage.wrap = True
                             codeblockinpage.language = 확장자언어매핑.get(
                                 확장자, 'plain text')
                         except:
@@ -69,8 +88,10 @@ for title in glob('*'):
                     f = open(title2, 'rt', encoding="utf-8")
                     data = f.read()
                     f.close()
+                    data = data.replace(' ', 공백prefix매핑.get(확장자, " "))
                     codeblockinpage = childblock.children.add_new(CodeBlock)
-                    codeblockinpage.title = f'{주석prefix매핑.get(확장자, "")} 파일이름 : {title2} \r\n\r\n{data}'
+                    codeblockinpage.title = f'{주석prefix매핑.get(확장자, "")} 파일이름 : {title2} \n\n{data}'
+                    codeblockinpage.wrap = True
                     codeblockinpage.language = 확장자언어매핑.get(확장자, 'plain text')
                 except:
                     print('error', 확장자)
@@ -80,8 +101,14 @@ for title in glob('*'):
             f = open(title, 'rt', encoding="utf-8")
             data = f.read()
             f.close()
+            print(확장자)
+            print(주석prefix매핑.get(확장자, ""))
+            data = data.replace(' ', 공백prefix매핑.get(확장자, " "))
             codeblockinpage = page.children.add_new(CodeBlock)
-            codeblockinpage.title = f'{주석prefix매핑.get(확장자, "")} 파일이름 : {title} \r\n\r\n{data}'
+            # print(주석prefix매핑.get(확장자, "")) #.py prefix가 제대로 작동하지 않음
+            # 강제로 #을 넣으면 잘 작동함
+            codeblockinpage.title = f'{주석prefix매핑.get(확장자, "")} 파일이름 : {title} \n\n{data}'
+            codeblockinpage.wrap = True
             codeblockinpage.language = 확장자언어매핑.get(확장자, 'plain text')
         except:
             print('error', 확장자)
